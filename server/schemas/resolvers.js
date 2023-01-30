@@ -4,16 +4,13 @@ const { signToken } = require('../utils/auth');
 
 const resolvers = {
   Query: {
-    users: async () => {
-      return User.find().populate('thoughts');
+  user: async (parent, args, context) => {
+    if(context.user){
+      return User.findOne({ _id: context.user._id }).populate('savedBooks');
+    }
+    throw new AuthenticationError('You need to be logged in!');
     },
-    user: async (parent, { username }) => {
-      return User.findOne({ username }).populate('thoughts');
-    },
-    savedBooks: async (parent, { username }) => {
-      const params = username ? { username } : {};
-      return Book.find(params);
-    },
+    
     me: async (parent, args, context) => {
       if (context.user) {
         return User.findOne({ _id: context.user._id }).populate('savedBooks');
@@ -28,6 +25,7 @@ const resolvers = {
       const token = signToken(user);
       return { token, user };
     },
+
     login: async (parent, { email, password }) => {
       const user = await User.findOne({ email });
 
@@ -45,26 +43,21 @@ const resolvers = {
 
       return { token, user };
     },
-    addBook: async (parent, { bookId }, context) => {
+    addBook: async (parent, { bookId, authors, description, image, link, title, }, context) => {
       if (context.user) {
-        const book = await Book.create({
-          authors,
-          description,
-          bookId,
-          image,
-          link,
-          title
-        });
+        const userNewBook = await User.findByIdAndUpdate({
+          _id: context.user._id
+        },
+        { $addToSet: {savedBooks: bookId, authors, description, image, link, title}},
+        { new: true,
+        runValidators: true });
 
-        await User.findOneAndUpdate(
-          { _id: context.user._id },
-          { $addToSet: { savedBooks: book.bookId } }
-        );
-
-        return book;
+        return userNewBook;
       }
+
       throw new AuthenticationError('You need to be logged in!');
     },
+    
     removeBook: async (parent, { bookId }, context) => {
       if (context.user) {
         const book = await Thought.findOneAndDelete({

@@ -38,15 +38,3 @@ export const QUERY_ME = gql`
   }
 `;
 
-// export const QUERY_SAVEDBOOKS = gql`
-//   query savedBooks($bookId: String) {
-//     savedBooks(bookId: $bookId) {
-//       authors
-//       description
-//       bookId
-//       image
-//       link
-//       title
-//     }
-//   }
-// `;
