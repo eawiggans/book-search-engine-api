@@ -49,10 +49,11 @@ const resolvers = {
       if (context.user) {
         const book = await Book.create({
           authors,
+          description,
           bookId,
-              image,
-              link,
-              title
+          image,
+          link,
+          title
         });
 
         await User.findOneAndUpdate(
@@ -79,7 +80,7 @@ const resolvers = {
       }
       throw new AuthenticationError('You need to be logged in!');
     },
-    
+
   },
 };
 
